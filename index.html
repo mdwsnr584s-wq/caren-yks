@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Caren • YKS</title>
+<style>
+:root{--bg:#f3f4f7;--card:#fff;--text:#15161a;--muted:#777b86;--line:#e5e6eb;--accent:#6d5dfc;--soft:#eeecff;--good:#22a06b}
+@media(prefers-color-scheme:dark){:root{--bg:#090a0f;--card:#14151b;--text:#f4f5f7;--muted:#9a9ca6;--line:#272932;--soft:#211e3d}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;padding:env(safe-area-inset-top) 14px 34px;max-width:760px;margin:auto}
+header{padding:20px 4px 12px;display:flex;justify-content:space-between;align-items:center}.brand{font-size:29px;font-weight:800;letter-spacing:-1px}.brand span{color:var(--accent)}.date{font-size:13px;color:var(--muted);margin-top:2px}
+.icon{width:42px;height:42px;border:0;border-radius:14px;background:var(--card);color:var(--text);font-size:19px}
+.hero{background:linear-gradient(135deg,#18142f,#5145c9);color:white;border-radius:26px;padding:20px;margin:8px 0 14px;box-shadow:0 12px 30px #5145c933}
+.hero small{opacity:.72}.hero h2{font-size:22px;line-height:1.25;margin:7px 0}.hero p{margin:0;opacity:.85;font-size:14px;line-height:1.45}.pill{display:inline-block;margin-top:14px;background:#ffffff1d;border:1px solid #ffffff2b;padding:8px 11px;border-radius:99px;font-size:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:21px;padding:16px;margin:11px 0}.row{display:flex;align-items:center;gap:12px}.between{justify-content:space-between}.section{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin:22px 4px 8px}
+.progress{height:9px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:10px}.bar{height:100%;width:0;background:var(--accent);transition:.25s}.stat{font-size:13px;color:var(--muted);margin-top:7px}
+.task{padding:13px}.time{font-size:12px;color:var(--muted);width:64px}.title{font-size:16px;font-weight:700}.detail{font-size:12px;color:var(--muted);margin-top:3px}.task.done .title{text-decoration:line-through;color:var(--muted)}
+input[type=checkbox]{appearance:none;width:25px;height:25px;border:2px solid #b9bbc4;border-radius:8px;flex:0 0 auto}.task input:checked{background:var(--accent);border-color:var(--accent)}.task input:checked:after{content:"✓";color:white;display:block;text-align:center;line-height:21px;font-weight:800}
+button{border:0;border-radius:13px;padding:11px 14px;background:var(--line);color:var(--text);font-weight:650}button.primary{background:var(--accent);color:white}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.choice{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.choice button{text-align:left;background:var(--bg);border:1px solid var(--line)}.choice button.selected{border-color:var(--accent);background:var(--soft)}
+textarea{width:100%;min-height:85px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:14px;padding:11px;font:inherit;resize:vertical}
+.modal{position:fixed;inset:0;background:#0008;display:none;align-items:flex-end;padding:12px}.sheet{background:var(--card);border-radius:25px;padding:18px;width:100%;max-width:760px;margin:auto}.sheet h3{margin:2px 0 8px}
+.mini{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header><div><div class="brand">Caren<span>.</span></div><div class="date" id="date"></div></div><button class="icon" onclick="openSettings()">⚙︎</button></header>
+
+<section class="hero">
+<small id="greeting">Günaydın.</small>
+<h2 id="message">Bugünün planını birlikte tamamlıyoruz.</h2>
+<p id="quote">Küçük bir adım bile bugününü değiştirir. Şimdi ilk göreve odaklan.</p>
+<div class="pill" id="streak">🔥 0 günlük seri</div>
+</section>
+
+<div class="card">
+<div class="row between"><strong>Bugünkü ilerleme</strong><b id="pct">0%</b></div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div class="stat" id="count">0 görev tamamlandı</div>
+</div>
+
+<div class="section">Günün başlangıcı</div>
+<div class="card">
+<strong>Bugün kaçta kalktın?</strong>
+<div class="choice" id="wakeChoices" style="margin-top:10px">
+<button onclick="wake('06:30',this)">06:30</button><button onclick="wake('07:00',this)">07:00</button>
+<button onclick="wake('07:30',this)">07:30</button><button onclick="wake('08:00+',this)">08:00+</button>
+</div>
+<div class="mini" id="wakeText" style="margin-top:9px">Caren buna göre günün temposunu yorumlayacak.</div>
+</div>
+
+<div class="section">Ana YKS programı</div>
+<div id="tasks"></div>
+
+<div class="section">Bugüne özel</div>
+<div class="card">
+<div class="row between"><div><strong>📚 Konu çalıştın mı?</strong><div class="detail">Çalıştığın derse +1 saat soru ekle.</div></div><button class="primary" onclick="addQuestionHour()">+1 saat</button></div>
+<div class="row between" style="margin-top:14px"><div><strong>🏋️ Spor</strong><div class="detail">19:00–20:00 • İstersen ekle.</div></div><button onclick="toggleExtra('gym')">Ekle</button></div>
+<div class="row between" style="margin-top:14px"><div><strong>📝 Matematik ödevi</strong><div class="detail">Her gün değil • Varsa ekle.</div></div><button onclick="toggleExtra('homework')">Ekle</button></div>
+</div>
+
+<div class="section">Caren'e rapor</div>
+<div class="card">
+<textarea id="report" placeholder="Bugün nasıl geçti? Ne yaptın, ne aksadı, yarın neye dikkat edelim?"></textarea>
+<div class="actions" style="margin-top:9px"><button class="primary" onclick="saveReport()">Raporu kaydet</button><button onclick="coach()">Caren'e sor</button></div>
+<div class="mini" id="coachText" style="margin-top:10px"></div>
+</div>
+
+<div class="section">Yarın için</div>
+<div class="card">
+<div class="mini">Caren her yeni günde bu programı sıfırlar; tamamlananlar, notlar ve seri korunur.</div>
+<div class="actions" style="margin-top:10px"><button onclick="resetToday()">Bugünü sıfırla</button></div>
+</div>
+
+<div id="modal" class="modal" onclick="closeSettings(event)"><div class="sheet" onclick="event.stopPropagation()">
+<h3>Caren ayarları</h3><p class="mini">Bildirim ve alarm özellikleri, uygulamanın ana ekrana eklenmiş/kurulmuş sürümünde ayrıca yapılandırılabilir. Bu sayfa şu an cihaz içinde verileri saklar.</p>
+<button class="primary" onclick="document.getElementById('modal').style.display='none'">Kapat</button>
+</div></div>
+
+<script>
+const base=[
+["08:00–09:30","TYT Matematik","Ana matematik çalışması"],
+["09:30–10:30","30 problem + 30 paragraf","Günlük rutin"],
+["11:00–11:45","Kahvaltı","Mola"],
+["11:45–13:00","TYT Fen",""],
+["13:00–14:00","Öğle arası",""],
+["14:00–15:00","AYT Matematik",""],
+["15:00–16:00","AYT Fen",""],
+["16:00–17:00","Geometri",""]
+];
+const KEY="caren_yks_v2", state=JSON.parse(localStorage.getItem(KEY)||'{"tasks":{},"extras":{},"wake":"","streak":0}');
+function today(){return new Date().toISOString().slice(0,10)}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function render(){
+ document.getElementById("date").textContent=new Intl.DateTimeFormat("tr-TR",{weekday:"long",day:"numeric",month:"long"}).format(new Date());
+ let h="";
+ base.forEach((x,i)=>h+=taskHTML("b"+i,x[0],x[1],x[2]));
+ if(state.extras.gym) h+=taskHTML("gym","19:00–20:00","Spor","Bugüne eklendi");
+ if(state.extras.homework) h+=taskHTML("hw","20:00–22:00","Matematik ödevi","Bugüne eklendi");
+ if(state.extras.q) h+=taskHTML("q","17:00–18:00","Konu sonrası soru","Çalıştığın derse +1 saat");
+ document.getElementById("tasks").innerHTML=h;
+ document.querySelectorAll(".task input").forEach(c=>c.onchange=()=>{state.tasks[c.dataset.id]=c.checked;c.closest(".task").classList.toggle("done",c.checked);save();update()});
+ Object.entries(state.tasks).forEach(([id,v])=>{let c=document.querySelector(`input[data-id="${id}"]`);if(c){c.checked=v;c.closest(".task").classList.toggle("done",v)}});
+ document.getElementById("wakeText").textContent=state.wake?`Bugün ${state.wake} kalktın. Caren günün planını buna göre değerlendirecek.`:"Caren buna göre günün temposunu yorumlayacak.";
+ update();
+}
+function taskHTML(id,time,title,detail){return `<div class="card task"><div class="row"><input data-id="${id}" type="checkbox"><div class="time">${time}</div><div><div class="title">${title}</div><div class="detail">${detail}</div></div></div></div>`}
+function update(){let a=[...document.querySelectorAll(".task input")],d=a.filter(x=>x.checked).length,p=a.length?Math.round(d/a.length*100):0;document.getElementById("pct").textContent=p+"%";document.getElementById("bar").style.width=p+"%";document.getElementById("count").textContent=`${d} / ${a.length} görev tamamlandı`;document.getElementById("streak").textContent=`🔥 ${state.streak||0} günlük seri`}
+function wake(v,b){state.wake=v;document.querySelectorAll("#wakeChoices button").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");save();render();document.getElementById("wakeText").textContent=`Bugün ${v} kalktın. İlk ders 08:00; kalan zamanı Caren'le düzenleyebilirsin.`}
+function toggleExtra(k){state.extras[k]=!state.extras[k];save();render()}
+function addQuestionHour(){state.extras.q=true;save();render()}
+function saveReport(){localStorage.setItem(KEY+"_report",document.getElementById("report").value);document.getElementById("coachText").textContent="Rapor kaydedildi. Yarın buna göre daha gerçekçi bir plan yapabiliriz."}
+function coach(){let p=Number(document.getElementById("pct").textContent.replace("%",""));document.getElementById("coachText").textContent=p>=80?"Bugün çok iyi ilerledin. Kalanı bitirmek için sadece bir sonraki göreve odaklan.":p>=50?"İyi gidiyorsun. Programın tamamını düşünme; sıradaki görevi bitir.":"Bugün kaymış olabilir. Günü çöpe atma; şimdi kalan en küçük görevi seçip başla."}
+function resetToday(){state.tasks={};state.extras={};state.wake="";save();render()}
+function openSettings(){document.getElementById("modal").style.display="flex"}function closeSettings(e){if(e.target.id==="modal")e.target.style.display="none"}
+document.getElementById("report").value=localStorage.getItem(KEY+"_report")||"";
+const hour=new Date().getHours();document.getElementById("greeting").textContent=hour<12?"Günaydın.":hour<18?"İyi gidiyorsun.":"Akşam kontrolü zamanı.";
+render();
+</script>
+</body>
+</html>
